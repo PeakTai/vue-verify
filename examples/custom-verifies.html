@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-verify demo</title>
+    <script src="vue.min.js"></script>
+    <script src="../dist/vue-verify.js"></script>
+</head>
+<body>
+<div id="app">
+    <p>
+        <label>email:</label>
+        <input type="text" v-model="email">
+        <template v-if="verify.email.$dirty">
+            <span v-if="verify.email.required">email required</span>
+            <span v-if="verify.email.email">please input an correct email</span>
+        </template>
+    </p>
+    <p>
+        <label>url:</label>
+        <input type="text" v-model="url">
+        <template v-if="verify.url.$dirty">
+            <span v-if="verify.url.required">url required</span>
+            <span v-if="verify.url.minLength">url must no less than 10 characters</span>
+            <span v-if="verify.url.maxLength">url must no more than 100 characters</span>
+            <span v-if="verify.url.url">please enter a valid url</span>
+        </template>
+    </p>
+    <p>
+        <label>username:</label>
+        <input type="text" v-model="name">
+        <template v-if="verify.name.$dirty">
+            <span v-if="verify.name.required">name required</span>
+            <span v-if="verify.name.exist">please change another one</span>
+        </template>
+    </p>
+    <p v-if="verify.$dirty&&verify.$valid">
+        <button type="button">submit</button>
+    </p>
+    <hr>
+    <pre>{{verify|json}}</pre>
+</div>
+<script>
+    Vue.config.debug = true
+    Vue.use(vueVerify)
+    //    global
+    //    var verifies = {...}
+    //    Vue.mixin({verifies,verifies})
+
+    window.vm = new Vue({
+        el: "#app",
+        data: {
+            email: null,
+            url: null,
+            name: "hehe",
+        },
+        created: function () {
+            this.verify({
+                email: {
+                    email: true,
+                    required: true
+                },
+                url: {
+                    required: true,
+                    minLength: 10,
+                    maxLength: 100,
+                    url: true
+                },
+                name: {
+                    required: true,
+                    exist: true
+                }
+            })
+        },
+        verifies: {
+            email: function (val) {
+                return /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(val)
+            },
+            url: function (val) {
+                return /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(val);
+            },
+            exist: function (val) {
+                return function (resolve, reject) {
+                    setTimeout(function () {
+                        if ("hello" === val) {
+                            reject()
+                        } else {
+                            resolve()
+                        }
+                    }, 500)
+                }
+            }
+        }
+
+    })
+</script>
+</body>
+</html>
