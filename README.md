@@ -146,7 +146,7 @@ new Vue({
 
 Install via github
 ```
-npm install https://github.com/PeakTai/vueverify.git --save-dev
+npm install https://github.com/PeakTai/vue-verify.git --save-dev
 ```
 
 ``` js
