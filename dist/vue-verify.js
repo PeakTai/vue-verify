@@ -1,6 +1,6 @@
 /*!
- * vue-verify 0.1.0
- * build in November 16th 2015, 17:20:46
+ * vue-verify 0.1.1
+ * build in November 17th 2015, 17:52:33
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -256,8 +256,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var requiredValid = self.verifies.required(val)
 
 	    if (ruleMap.required) {
-	        self.vm.$set(verifyModelPath + ".required", !requiredValid)
-	        self.update$valid(modelPath)
+	        self.update$valid(modelPath, "required", !requiredValid)
 	    }
 
 	    //other verifications
@@ -266,59 +265,55 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return
 	        }
 
-	        if (!requiredValid) {
-	            self.vm.$set(verifyModelPath + "." + rule, false)
-	            self.update$valid(modelPath)
-	            return
-	        }
-
 	        if (!self.verifies.hasOwnProperty(rule)) {
 	            console.warn("unknown verify rule:" + rule + ",you can set it in verifies of Vue constructor options first")
 	            return
 	        }
+
 	        var arg = ruleMap[rule]
 	        var verifyFn = self.verifies[rule]
 	        var result = verifyFn(val, arg)
 
 	        if (typeof result === "boolean") {
-	            self.vm.$set(verifyModelPath + "." + rule, !result)
-	            self.update$valid(modelPath)
+	            self.update$valid(modelPath, rule, !result)
 	            return
 	        }
 	        //promise
 	        else if (result instanceof Function) {
 	            var Promise = __webpack_require__(3)
 	            new Promise(result).then(function () {
-	                self.vm.$set(verifyModelPath + "." + rule, false)
-	                self.update$valid(modelPath)
+	                self.update$valid(modelPath, rule, false)
 	            }, function (reason) {
-	                self.vm.$set(verifyModelPath + "." + rule, true)
-	                self.update$valid(modelPath)
+	                self.update$valid(modelPath, rule, true)
 	            })
 	        } else {
-	            throw "unsupported returned value of \"" + rule + "\" vrfity function"
+	            throw "unsupported returned value of \"" + rule + "\" verify function"
 	        }
 
 	    })
 	}
 
 
-	Verification.prototype.update$valid = function (modelPath) {
+	Verification.prototype.update$valid = function (modelPath, rule, inValid) {
 	    var self = this
 	    var verifyModelPath = self.getVerifyModelPath(modelPath)
-	    var verifyModel = self.vm.$get(verifyModelPath)
-	    var keyValid = true
-	    for (var prop in verifyModel) {
+	    self.vm.$set(verifyModelPath + "." + rule, inValid)
+
+	    var verifyModel = self.vm.$get(verifyModelPath), modelValid = true
+	    Object.keys(verifyModel).forEach(function (prop) {
 	        //ignore $dirty and $valid
 	        if ("$dirty" === prop || "$valid" === prop) {
-	            continue
+	            return
 	        }
-	        if (verifyModel[prop]) {
-	            keyValid = false
-	            break
+	        //keep only one rule has invalid message
+	        if (!modelValid) {
+	            self.vm.$set(verifyModelPath + "." + prop, false)
+	        } else if (verifyModel[prop]) {
+	            modelValid = false
 	        }
-	    }
-	    self.vm.$set(verifyModelPath + ".$valid", keyValid)
+	    })
+
+	    self.vm.$set(verifyModelPath + ".$valid", modelValid)
 
 	    //verify.$valid
 	    var valid = true
