@@ -12,7 +12,7 @@ import and install
  </script>
 ```
 
-create a Vue instance,invoke verify function in the created lifecycle
+create a Vue instance,invoke verify(rules,opts) in the created lifecycle hook
 
 ``` js
 new Vue({
@@ -61,7 +61,7 @@ new Vue({
 </div>
 ```
 
-# Built-in varification
+# Built-in verification
 
 ```
 new Vue({
@@ -69,7 +69,7 @@ new Vue({
     created:function(){
         this.verify({
             modelPath:{
-                //built-in varification as follows.
+                //built-in verification as follows.
                 required:true,
                 pattern:"/^1[3578][0-9]{9}$/",
                 minLength:3,
@@ -82,7 +82,7 @@ new Vue({
 })
 ```
 
-Through the examples for more information
+> Note: Get more information from examples.
 
 # User custom verification
 
