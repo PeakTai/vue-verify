@@ -1,10 +1,10 @@
 # Intro
 vue-verify is a simple veriication plugin for vue,compatible with  Vue.js 0.12.0+.
 
-# Usage
+# Usage
 import and install
 
-``` html
+```html
  <script src="vue.min.js"></script>
  <script src="vue-verify.js"></script>
  <script>
@@ -14,7 +14,7 @@ import and install
 
 create a Vue instance,invoke verify(rules,opts) in the created lifecycle hook
 
-``` js
+```js
 new Vue({
     el: "#app",
     data: {
@@ -37,9 +37,9 @@ new Vue({
 })
 ```
 
-template code
+template code
 
-``` html
+```html
 <div id="app">
     <p>
         <input v-model="name">
@@ -63,7 +63,7 @@ new Vue({
 
 # Built-in verification
 
-```
+```js
 new Vue({
     ...
     created:function(){
@@ -86,7 +86,7 @@ new Vue({
 
 # User custom verification
 
-```
+```js
 new Vue({
     el: "#app",
     data: {...}
@@ -127,7 +127,7 @@ You can specify it global via `Vue.mixin({verifies:verifies})`.
 
 Default is "verify".
 
-```
+```js
 new Vue({
     ...
     ready:function(){
