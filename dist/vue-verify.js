@@ -1,6 +1,6 @@
 /*!
- * vue-verify 0.1.1
- * build in November 17th 2015, 17:52:33
+ * vue-verify 0.2.0
+ * build in November 18th 2015, 18:31:26
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -62,17 +62,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Created by peak on 15/11/14.
 	 */
 	exports.install = function (Vue) {
-	    Vue.prototype.verify = function (rules, opts) {
+	    Vue.prototype.$verify = function (rules) {
 	        var vm = this
-	        var verifies = __webpack_require__(1)
+	        var methods = __webpack_require__(1)
 	        var Verification = __webpack_require__(2)
-	        opts = opts || {}
+	        var verifier = vm.$options.verifier || {}
 	        new Verification({
 	            vm: vm,
 	            rules: rules,
-	            verifies: Vue.util.extend(vm.$options.verifies || {}, verifies),
-	            namespace: opts.namespace,
-	            debug: opts.debug
+	            methods: Vue.util.extend(verifier.methods || {}, methods),
+	            namespace: verifier.namespace
 	        }).init()
 	    }
 	}
@@ -240,9 +239,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	function Verification(opts) {
 	    this.vm = opts.vm
 	    this.rules = opts.rules
-	    this.verifies = opts.verifies
+	    this.methods = opts.methods
 	    this.namespace = opts.namespace || "verify"
-	    this.debug = !!opts.debug
 	}
 	Verification.prototype.getVerifyModelPath = function (modelPath) {
 	    return this.namespace + "." + modelPath
@@ -253,7 +251,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var verifyModelPath = self.getVerifyModelPath(modelPath)
 	    var ruleMap = self.rules[modelPath]
 	    //required first
-	    var requiredValid = self.verifies.required(val)
+	    var requiredValid = self.methods.required(val)
+
+	    if (!ruleMap.required && !requiredValid) {
+	        //if model not required and value is blank,make it valid
+	        Object.keys(ruleMap).forEach(function (rule) {
+	            if (self.methods.hasOwnProperty(rule)) {
+	                self.update$valid(modelPath, rule, false)
+	            }
+	        })
+	        return
+	    }
 
 	    if (ruleMap.required) {
 	        self.update$valid(modelPath, "required", !requiredValid)
@@ -265,13 +273,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return
 	        }
 
-	        if (!self.verifies.hasOwnProperty(rule)) {
+	        if (!self.methods.hasOwnProperty(rule)) {
 	            console.warn("unknown verify rule:" + rule + ",you can set it in verifies of Vue constructor options first")
 	            return
 	        }
 
 	        var arg = ruleMap[rule]
-	        var verifyFn = self.verifies[rule]
+	        var verifyFn = self.methods[rule]
 	        var result = verifyFn(val, arg)
 
 	        if (typeof result === "boolean") {

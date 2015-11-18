@@ -44,7 +44,7 @@
             age: 0
         },
         created: function () {
-            this.verify({
+            this.$verify({
                 name: {
                     required: true,
                     minLength: 3,
@@ -55,9 +55,10 @@
                     min: 5,
                     max: 50
                 }
-            }, {
-                namespace: "validator"//default verify
             })
+        },
+        verifier: {
+            namespace: "validator"//default verify
         }
     })
 </script>

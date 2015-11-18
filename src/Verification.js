@@ -5,9 +5,8 @@
 function Verification(opts) {
     this.vm = opts.vm
     this.rules = opts.rules
-    this.verifies = opts.verifies
+    this.methods = opts.methods
     this.namespace = opts.namespace || "verify"
-    this.debug = !!opts.debug
 }
 Verification.prototype.getVerifyModelPath = function (modelPath) {
     return this.namespace + "." + modelPath
@@ -18,7 +17,17 @@ Verification.prototype.valid = function (modelPath, val) {
     var verifyModelPath = self.getVerifyModelPath(modelPath)
     var ruleMap = self.rules[modelPath]
     //required first
-    var requiredValid = self.verifies.required(val)
+    var requiredValid = self.methods.required(val)
+
+    if (!ruleMap.required && !requiredValid) {
+        //if model not required and value is blank,make it valid
+        Object.keys(ruleMap).forEach(function (rule) {
+            if (self.methods.hasOwnProperty(rule)) {
+                self.update$valid(modelPath, rule, false)
+            }
+        })
+        return
+    }
 
     if (ruleMap.required) {
         self.update$valid(modelPath, "required", !requiredValid)
@@ -30,13 +39,13 @@ Verification.prototype.valid = function (modelPath, val) {
             return
         }
 
-        if (!self.verifies.hasOwnProperty(rule)) {
+        if (!self.methods.hasOwnProperty(rule)) {
             console.warn("unknown verify rule:" + rule + ",you can set it in verifies of Vue constructor options first")
             return
         }
 
         var arg = ruleMap[rule]
-        var verifyFn = self.verifies[rule]
+        var verifyFn = self.methods[rule]
         var result = verifyFn(val, arg)
 
         if (typeof result === "boolean") {

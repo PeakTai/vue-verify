@@ -2,7 +2,7 @@
 vue-verify is a simple veriication plugin for vue,compatible with  Vue.js 0.12.0+.
 
 # Usage
-import and install
+Import and install
 
 ```html
  <script src="vue.min.js"></script>
@@ -12,7 +12,7 @@ import and install
  </script>
 ```
 
-create a Vue instance,invoke verify(rules,opts) in the created lifecycle hook
+Create a Vue instance,invoke $verify(rules) in the created lifecycle hook.
 
 ```js
 new Vue({
@@ -22,8 +22,8 @@ new Vue({
         age: 0
     },
     created: function () {
-        //Vue.prototype.verify(rules,opts)
-        this.verify({
+        //Vue.prototype.$verify(rules)
+        this.$verify({
             name: {
                 required: true,
                 maxLength: 16
@@ -61,15 +61,15 @@ template code
 </div>
 ```
 
-# Built-in verification
+# Built-in verify methods
 
 ```js
 new Vue({
     ...
     created:function(){
-        this.verify({
+        this.$verify({
             modelPath:{
-                //built-in verification as follows.
+                //built-in verify methods as follows.
                 required:true,
                 pattern:"/^1[3578][0-9]{9}$/",
                 minLength:3,
@@ -84,63 +84,54 @@ new Vue({
 
 > Note: Get more information from examples.
 
-# User custom verification
+# Options
 
+You can specify verification options such as the following example.
 ```js
 new Vue({
     el: "#app",
-    data: {...}
-    created:function () {
-        this.verify({...})
+    data:{...}
+    created: function () {
+           this.$verify({...})
     },
-    //specify verifies option
-    verifies: {
-        // add custom verification function to here
-        email: function (val) {
-            //return a boolean value
-            return /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(val)
-        },
-        exist: function (val) {
-            //return a promise function value for async verify
-            return function (resolve, reject) {
-                $.ajax({
-                    url: "server side verify url",
-                    data: {name: val},
-                    success: function (json) {
-                        json.valid ? resolve() : reject()
-                    },
-                    error: function (xhr) {
-                        reject()
-                    }
-                })
+    //specify verifier option
+    verifier: {
+        namespace: "validator",
+        methods: {
+            email: function (val) {
+                //return a boolean value
+                return /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(val)
+            },
+            exist: function (val) {
+                //return a promise function value for async verify
+                return function (resolve, reject) {
+                    $.ajax({
+                        url: "server side verify url",
+                        data: {name: val},
+                        success: function (json) {
+                            json.valid ? resolve() : reject()
+                        },
+                        error: function (xhr) {
+                            reject()
+                        }
+                    })
+                }
             }
         }
     }
 })
 ```
 
-You can specify it global via `Vue.mixin({verifies:verifies})`.
-
-# Options
 
 ## Namespace
 
 Default is "verify".
 
-```js
-new Vue({
-    ...
-    ready:function(){
-        //Vue.prototype.verify(rules,opts)
-        this.verify({
-            //specify rules here
-        },{
-           //specify verify options here
-            namespace:"validator"
-        })
-    }
-})
-```
+## methods
+
+Specify custom verify methods.
+
+> You can specify options global via `Vue.mixin({verifier:{...}})`.
 
 # Use in nodejs
 

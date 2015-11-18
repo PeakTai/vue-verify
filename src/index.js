@@ -2,17 +2,16 @@
  * Created by peak on 15/11/14.
  */
 exports.install = function (Vue) {
-    Vue.prototype.verify = function (rules, opts) {
+    Vue.prototype.$verify = function (rules) {
         var vm = this
-        var verifies = require("./verifies.js")
+        var methods = require("./methods.js")
         var Verification = require("./Verification.js")
-        opts = opts || {}
+        var verifier = vm.$options.verifier || {}
         new Verification({
             vm: vm,
             rules: rules,
-            verifies: Vue.util.extend(vm.$options.verifies || {}, verifies),
-            namespace: opts.namespace,
-            debug: opts.debug
+            methods: Vue.util.extend(verifier.methods || {}, methods),
+            namespace: verifier.namespace
         }).init()
     }
 }
