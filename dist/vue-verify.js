@@ -1,6 +1,6 @@
 /*!
- * vue-verify 0.2.0
- * build in November 18th 2015, 18:31:26
+ * vue-verify 0.2.1
+ * build in November 20th 2015, 14:37:53
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -274,7 +274,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        if (!self.methods.hasOwnProperty(rule)) {
-	            console.warn("unknown verify rule:" + rule + ",you can set it in verifies of Vue constructor options first")
+	            console.warn("can not find verify method of rule \"" + rule + "\"")
 	            return
 	        }
 
@@ -295,7 +295,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                self.update$valid(modelPath, rule, true)
 	            })
 	        } else {
-	            throw "unsupported returned value of \"" + rule + "\" verify function"
+	            throw "unsupported returned value of the verify method \"" + rule + "\""
 	        }
 
 	    })

@@ -40,7 +40,7 @@ Verification.prototype.valid = function (modelPath, val) {
         }
 
         if (!self.methods.hasOwnProperty(rule)) {
-            console.warn("unknown verify rule:" + rule + ",you can set it in verifies of Vue constructor options first")
+            console.warn("can not find verify method of rule \"" + rule + "\"")
             return
         }
 
@@ -61,7 +61,7 @@ Verification.prototype.valid = function (modelPath, val) {
                 self.update$valid(modelPath, rule, true)
             })
         } else {
-            throw "unsupported returned value of \"" + rule + "\" verify function"
+            throw "unsupported returned value of the verify method \"" + rule + "\""
         }
 
     })

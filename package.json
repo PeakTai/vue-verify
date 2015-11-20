@@ -1,6 +1,6 @@
 {
   "name": "vue-verify",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "verification plugin of vue",
   "main": "src/index.js",
   "scripts": {
@@ -20,7 +20,9 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "moment": "^2.10.6",
-    "promiz": "^1.0.4",
     "webpack": "^1.12.6"
+  },
+  "dependencies": {
+    "promiz": "^1.0.4"
   }
 }
