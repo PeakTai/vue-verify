@@ -137,7 +137,7 @@ Specify custom verify methods.
 
 Install via github
 ```
-npm install https://github.com/PeakTai/vue-verify.git --save-dev
+npm install vue-verify --save-dev
 ```
 
 ``` js
