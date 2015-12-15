@@ -1,6 +1,6 @@
 /*!
- * vue-verify 0.2.1
- * build in November 20th 2015, 14:37:53
+ * vue-verify 0.3.0
+ * build in December 15th 2015, 17:10:23
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -214,6 +214,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return /^(-?[1-9]\d*|0)$/.test(val)
 	}
 
+	function equalTo(val, modelPath) {
+	    return val === this.$get(modelPath)
+	}
+
 
 	/**
 	 * export(s)
@@ -224,7 +228,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    minLength: minLength,
 	    maxLength: maxLength,
 	    min: min,
-	    max: max
+	    max: max,
+	    equalTo: equalTo
 	}
 
 
@@ -280,7 +285,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        var arg = ruleMap[rule]
 	        var verifyFn = self.methods[rule]
-	        var result = verifyFn(val, arg)
+	        var result = verifyFn.call(self.vm, val, arg)
 
 	        if (typeof result === "boolean") {
 	            self.update$valid(modelPath, rule, !result)
