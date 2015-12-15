@@ -16,6 +16,17 @@
             <span v-if="verify.name.maxLength">please enter no more than 16 characters</span>
         </template>
     </p>
+    <p>
+        <label>cconfirm name:</label>
+        <input v-model="confirm.name">
+        <template v-if="verify.confirm.name.$dirty">
+            <span v-if="verify.confirm.name.required">reqiured</span>
+            <span v-if="verify.confirm.name.equalTo">please enter the same name again</span>
+        </template>
+    </p>
+    <p>
+        <label></label>
+    </p>
 
     <p>
         <label>age:</label>
@@ -52,6 +63,9 @@
             age: 0,
             family: {
                 father: null
+            },
+            confirm: {
+                name: null
             }
         },
         created: function () {
@@ -67,6 +81,10 @@
                 //you must specify a model path,not support recursion
                 "family.father": {
                     required: true
+                },
+                "confirm.name": {
+                    required: true,
+                    equalTo: "name"
                 }
             })
         }

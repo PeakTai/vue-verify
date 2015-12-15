@@ -132,6 +132,10 @@ function isInteger(val) {
     return /^(-?[1-9]\d*|0)$/.test(val)
 }
 
+function equalTo(val, modelPath) {
+    return val === this.$get(modelPath)
+}
+
 
 /**
  * export(s)
@@ -142,5 +146,6 @@ module.exports = {
     minLength: minLength,
     maxLength: maxLength,
     min: min,
-    max: max
+    max: max,
+    equalTo: equalTo
 }
