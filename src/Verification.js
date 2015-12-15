@@ -46,7 +46,7 @@ Verification.prototype.valid = function (modelPath, val) {
 
         var arg = ruleMap[rule]
         var verifyFn = self.methods[rule]
-        var result = verifyFn(val, arg)
+        var result = verifyFn.call(self.vm, val, arg)
 
         if (typeof result === "boolean") {
             self.update$valid(modelPath, rule, !result)
