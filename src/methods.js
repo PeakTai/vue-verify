@@ -1,12 +1,4 @@
 /**
- * Created by peak on 15/11/14.
- */
-/**
- * Fundamental validate functions,fork from offical vue-validation
- */
-
-
-/**
  * required
  *
  * This function validate whether the value has been filled out.
@@ -36,21 +28,16 @@ function required(val) {
  * This function validate whether the value matches the regex pattern
  *
  * @param val
- * @param {String} pat
+ * @param {RegExp} pat
  * @return {Boolean}
  */
 
 function pattern(val, pat) {
-    if (typeof pat !== 'string') {
+    if (!(pat instanceof RegExp)) {
         return false
     }
 
-    var match = pat.match(new RegExp('^/(.*?)/([gimy]*)$'))
-    if (!match) {
-        return false
-    }
-
-    return new RegExp(match[1], match[2]).test(val)
+    return pat.test(val)
 }
 
 

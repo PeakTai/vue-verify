@@ -42,6 +42,7 @@
         <input v-model="family.father">
         <template v-if="verify.family.father.$dirty">
             <span v-if="verify.family.father.required">father required</span>
+            <span v-if="verify.family.father.pattern">father name must be all the letters</span>
         </template>
     </p>
 
@@ -80,7 +81,8 @@
                 },
                 //you must specify a model path,not support recursion
                 "family.father": {
-                    required: true
+                    required: true,
+                    pattern: /^\w{5,36}$/
                 },
                 "confirm.name": {
                     required: true,

@@ -2,6 +2,7 @@
  * Created by peak on 15/11/14.
  */
 exports.install = function (Vue) {
+    Vue.prototype.$dirty = false
     Vue.prototype.$verify = function (rules) {
         var vm = this
         var methods = require("./methods.js")

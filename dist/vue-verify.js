@@ -1,6 +1,6 @@
 /*!
- * vue-verify 0.3.0
- * build in December 15th 2015, 17:10:23
+ * vue-verify 0.3.1
+ * build in January 6th 2016, 18:30:29
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -62,6 +62,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Created by peak on 15/11/14.
 	 */
 	exports.install = function (Vue) {
+	    Vue.prototype.$dirty = false
 	    Vue.prototype.$verify = function (rules) {
 	        var vm = this
 	        var methods = __webpack_require__(1)
@@ -79,14 +80,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ },
 /* 1 */
 /***/ function(module, exports) {
-
-	/**
-	 * Created by peak on 15/11/14.
-	 */
-	/**
-	 * Fundamental validate functions,fork from offical vue-validation
-	 */
-
 
 	/**
 	 * required
@@ -118,21 +111,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * This function validate whether the value matches the regex pattern
 	 *
 	 * @param val
-	 * @param {String} pat
+	 * @param {RegExp} pat
 	 * @return {Boolean}
 	 */
 
 	function pattern(val, pat) {
-	    if (typeof pat !== 'string') {
+	    if (!(pat instanceof RegExp)) {
 	        return false
 	    }
 
-	    var match = pat.match(new RegExp('^/(.*?)/([gimy]*)$'))
-	    if (!match) {
-	        return false
-	    }
-
-	    return new RegExp(match[1], match[2]).test(val)
+	    return pat.test(val)
 	}
 
 
