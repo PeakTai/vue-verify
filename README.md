@@ -131,7 +131,7 @@ Default is "verify".
 
 Specify custom verify methods.
 
-> You can specify options global via `Vue.mixin({verifier:{...}})`.
+> You can specify options global via  `Vue.use(vueVerify,options)`,`Vue.mixin({verifier:options})` is deprecated.
 
 # Use in nodejs
 

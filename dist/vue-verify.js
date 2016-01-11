@@ -1,6 +1,6 @@
 /*!
- * vue-verify 0.3.1
- * build in January 6th 2016, 18:30:29
+ * vue-verify 0.3.2
+ * build in January 11th 2016, 14:07:13
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -61,18 +61,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * Created by peak on 15/11/14.
 	 */
-	exports.install = function (Vue) {
-	    Vue.prototype.$dirty = false
+	exports.install = function (Vue, options) {
+	    options = options || {}
+	    var methods = __webpack_require__(1)
+	    methods = Vue.util.extend(methods, options.methods || {})
+
 	    Vue.prototype.$verify = function (rules) {
 	        var vm = this
-	        var methods = __webpack_require__(1)
 	        var Verification = __webpack_require__(2)
 	        var verifier = vm.$options.verifier || {}
 	        new Verification({
 	            vm: vm,
 	            rules: rules,
 	            methods: Vue.util.extend(verifier.methods || {}, methods),
-	            namespace: verifier.namespace
+	            namespace: verifier.namespace || options.namespace
 	        }).init()
 	    }
 	}
