@@ -1,6 +1,6 @@
 {
   "name": "vue-verify",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "verification plugin of vue",
   "main": "src/index.js",
   "scripts": {

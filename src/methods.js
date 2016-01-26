@@ -128,11 +128,32 @@ function equalTo(val, modelPath) {
  * export(s)
  */
 module.exports = {
-    required: required,
-    pattern: pattern,
-    minLength: minLength,
-    maxLength: maxLength,
-    min: min,
-    max: max,
-    equalTo: equalTo
+    required: {
+        fn: required,
+        priority: 1
+    },
+    minLength: {
+        fn: minLength,
+        priority: 2
+    },
+    maxLength: {
+        fn: maxLength,
+        priority: 3
+    },
+    min: {
+        fn: min,
+        priority: 4
+    },
+    max: {
+        fn: max,
+        priority: 5
+    },
+    pattern: {
+        fn: pattern,
+        priority: 6
+    },
+    equalTo: {
+        fn: equalTo,
+        priority: 7
+    }
 }

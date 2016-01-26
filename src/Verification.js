@@ -79,7 +79,7 @@ Verification.prototype.update$valid = function (modelPath, rule, inValid) {
         if ("$dirty" === prop || "$valid" === prop) {
             return
         }
-        //keep only one rule has invalid message
+        //keep only one rule has invalid flag
         if (!modelValid) {
             self.vm.$set(verifyModelPath + "." + prop, false)
         } else if (verifyModel[prop]) {

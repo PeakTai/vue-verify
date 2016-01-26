@@ -1,6 +1,6 @@
 /*!
- * vue-verify 0.3.2
- * build in January 11th 2016, 14:07:13
+ * vue-verify 0.4.0
+ * build in January 26th 2016, 15:26:21
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -62,20 +62,173 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Created by peak on 15/11/14.
 	 */
 	exports.install = function (Vue, options) {
+
 	    options = options || {}
-	    var methods = __webpack_require__(1)
-	    methods = Vue.util.extend(methods, options.methods || {})
+	    var buildInMethods = Vue.util.extend(__webpack_require__(1), processMethod(options.methods))
 
 	    Vue.prototype.$verify = function (rules) {
 	        var vm = this
-	        var Verification = __webpack_require__(2)
 	        var verifier = vm.$options.verifier || {}
-	        new Verification({
-	            vm: vm,
-	            rules: rules,
-	            methods: Vue.util.extend(verifier.methods || {}, methods),
-	            namespace: verifier.namespace || options.namespace
-	        }).init()
+	        var methods = Vue.util.extend(processMethod(verifier.methods), buildInMethods)
+	        var namespace = verifier.namespace || options.namespace || "verify"
+
+	        vm.$set(namespace + ".$dirty", false)
+	        vm.$set(namespace + ".$valid", false)
+	        Object.keys(rules).forEach(function (modelPath) {
+	            vm.$set(getVerifyModelPath(modelPath) + ".$dirty", false)
+	            verify(modelPath, vm.$get(modelPath))
+	        })
+
+	        Object.keys(rules).forEach(function (modelPath) {
+	            vm.$watch(modelPath, function (val) {
+	                vm.$set(getVerifyModelPath(modelPath) + ".$dirty", true)
+	                vm.$set(namespace + ".$dirty", true)
+	                verify(modelPath, val)
+	            })
+	        })
+
+
+	        function getVerifyModelPath(modelPath) {
+	            return namespace + "." + modelPath
+	        }
+
+	        function verify(modelPath, val) {
+	            var ruleMap = rules[modelPath]
+
+	            if (!ruleMap.required && !methods.required.fn(val)) {
+	                //if model not required and value is blank,make it valid
+	                Object.keys(ruleMap).forEach(function (rule) {
+	                    if (methods.hasOwnProperty(rule)) {
+	                        update(modelPath, rule, false)
+	                    }
+	                })
+	                return
+	            }
+
+	            var ruleMapClone = Vue.util.extend({}, ruleMap)
+	            var keys = Object.keys(ruleMapClone).sort(function (a, b) {
+	                var m1 = methods[a]
+	                var m2 = methods[b]
+	                var p1 = m1 ? m1.priority : 100
+	                var p2 = m2 ? m2.priority : 100
+	                return p1 - p2
+	            })
+
+	            stepVerify(modelPath, ruleMapClone, keys, 0, val)
+	        }
+
+	        function stepVerify(modelPath, ruleMap, keys, index, val) {
+	            if (index >= keys.length) {
+	                return
+	            }
+	            var rule = keys[index]
+	            if (!rule) {
+	                return
+	            }
+	            if (!methods.hasOwnProperty(rule)) {
+	                console.warn("can not find verify method of rule \"" + rule + "\"")
+	                return
+	            }
+	            var arg = ruleMap[rule]
+	            var verifyFn = methods[rule].fn
+	            var result = verifyFn.call(vm, val, arg)
+
+	            if (typeof result === "boolean") {
+	                update(modelPath, rule, !result)
+	                if (result) {
+	                    stepVerify(modelPath, ruleMap, keys, index + 1, val)
+	                }
+	                return
+	            }
+	            //promise
+	            else if (result instanceof Function) {
+	                var Promise = __webpack_require__(2)
+	                new Promise(result).then(function () {
+	                    update(modelPath, rule, false)
+	                    stepVerify(modelPath, ruleMap, keys, index + 1, val)
+	                }, function (reason) {
+	                    update(modelPath, rule, true)
+	                })
+	            } else {
+	                throw "unsupported returned value of the verify method \"" + rule + "\""
+	            }
+
+	        }
+
+	        function update(modelPath, rule, inValid) {
+	            var verifyModelPath = getVerifyModelPath(modelPath)
+	            vm.$set(verifyModelPath + "." + rule, inValid)
+
+	            var verifyModel = vm.$get(verifyModelPath), modelValid = true
+	            Object.keys(verifyModel).forEach(function (prop) {
+	                //ignore $dirty and $valid
+	                if ("$dirty" === prop || "$valid" === prop) {
+	                    return
+	                }
+	                //keep only one rule has invalid flag
+	                if (!modelValid) {
+	                    vm.$set(verifyModelPath + "." + prop, false)
+	                } else if (verifyModel[prop]) {
+	                    modelValid = false
+	                }
+	            })
+
+	            vm.$set(verifyModelPath + ".$valid", modelValid)
+
+	            //verify.$valid
+	            var valid = true
+	            var keys = Object.keys(rules)
+	            for (var i = 0; i < keys.length; i++) {
+	                if (!vm.$get(getVerifyModelPath(keys[i]) + ".$valid")) {
+	                    valid = false
+	                    break
+	                }
+	            }
+	            vm.$set(namespace + ".$valid", valid)
+	        }
+	    }
+	    function processMethod(methods) {
+	        if (!methods) {
+	            return {}
+	        }
+
+	        function process(method) {
+	            if (!method) {
+	                return null
+	            }
+	            if (typeof method === 'function') {
+	                return {priority: 100, fn: method}
+	            }
+
+	            if (!Vue.util.isObject(value)) {
+	                return null
+	            }
+	            if (typeof method.fn != "function") {
+	                return null
+	            }
+	            var priority = method.priority
+	            if (!priority) {
+	                return {priority: 100, fn: method.fn}
+	            }
+	            if (typeof priority != 'number' || priority < 1 || priority > 100) {
+	                return null
+	            }
+	            return {priority: priority, fn: method.fn}
+
+	        }
+
+	        var result = {}
+	        Object.keys(methods).forEach(function (key) {
+	            var value = methods[key]
+	            var method = process(value)
+	            if (!method) {
+	                console.log("can not accept method \"" + key + "\"", value)
+	                throw "can not accept method \"" + key + "\""
+	            } else {
+	                result[key] = method
+	            }
+	        })
+	        return result
 	    }
 	}
 
@@ -213,151 +366,39 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * export(s)
 	 */
 	module.exports = {
-	    required: required,
-	    pattern: pattern,
-	    minLength: minLength,
-	    maxLength: maxLength,
-	    min: min,
-	    max: max,
-	    equalTo: equalTo
+	    required: {
+	        fn: required,
+	        priority: 1
+	    },
+	    minLength: {
+	        fn: minLength,
+	        priority: 2
+	    },
+	    maxLength: {
+	        fn: maxLength,
+	        priority: 3
+	    },
+	    min: {
+	        fn: min,
+	        priority: 4
+	    },
+	    max: {
+	        fn: max,
+	        priority: 5
+	    },
+	    pattern: {
+	        fn: pattern,
+	        priority: 6
+	    },
+	    equalTo: {
+	        fn: equalTo,
+	        priority: 7
+	    }
 	}
 
 
 /***/ },
 /* 2 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Created by peak on 15/11/15.
-	 */
-	"use strict"
-	function Verification(opts) {
-	    this.vm = opts.vm
-	    this.rules = opts.rules
-	    this.methods = opts.methods
-	    this.namespace = opts.namespace || "verify"
-	}
-	Verification.prototype.getVerifyModelPath = function (modelPath) {
-	    return this.namespace + "." + modelPath
-	}
-
-	Verification.prototype.valid = function (modelPath, val) {
-	    var self = this
-	    var verifyModelPath = self.getVerifyModelPath(modelPath)
-	    var ruleMap = self.rules[modelPath]
-	    //required first
-	    var requiredValid = self.methods.required(val)
-
-	    if (!ruleMap.required && !requiredValid) {
-	        //if model not required and value is blank,make it valid
-	        Object.keys(ruleMap).forEach(function (rule) {
-	            if (self.methods.hasOwnProperty(rule)) {
-	                self.update$valid(modelPath, rule, false)
-	            }
-	        })
-	        return
-	    }
-
-	    if (ruleMap.required) {
-	        self.update$valid(modelPath, "required", !requiredValid)
-	    }
-
-	    //other verifications
-	    Object.keys(ruleMap).forEach(function (rule) {
-	        if ("required" === rule) {
-	            return
-	        }
-
-	        if (!self.methods.hasOwnProperty(rule)) {
-	            console.warn("can not find verify method of rule \"" + rule + "\"")
-	            return
-	        }
-
-	        var arg = ruleMap[rule]
-	        var verifyFn = self.methods[rule]
-	        var result = verifyFn.call(self.vm, val, arg)
-
-	        if (typeof result === "boolean") {
-	            self.update$valid(modelPath, rule, !result)
-	            return
-	        }
-	        //promise
-	        else if (result instanceof Function) {
-	            var Promise = __webpack_require__(3)
-	            new Promise(result).then(function () {
-	                self.update$valid(modelPath, rule, false)
-	            }, function (reason) {
-	                self.update$valid(modelPath, rule, true)
-	            })
-	        } else {
-	            throw "unsupported returned value of the verify method \"" + rule + "\""
-	        }
-
-	    })
-	}
-
-
-	Verification.prototype.update$valid = function (modelPath, rule, inValid) {
-	    var self = this
-	    var verifyModelPath = self.getVerifyModelPath(modelPath)
-	    self.vm.$set(verifyModelPath + "." + rule, inValid)
-
-	    var verifyModel = self.vm.$get(verifyModelPath), modelValid = true
-	    Object.keys(verifyModel).forEach(function (prop) {
-	        //ignore $dirty and $valid
-	        if ("$dirty" === prop || "$valid" === prop) {
-	            return
-	        }
-	        //keep only one rule has invalid message
-	        if (!modelValid) {
-	            self.vm.$set(verifyModelPath + "." + prop, false)
-	        } else if (verifyModel[prop]) {
-	            modelValid = false
-	        }
-	    })
-
-	    self.vm.$set(verifyModelPath + ".$valid", modelValid)
-
-	    //verify.$valid
-	    var valid = true
-	    var keys = Object.keys(self.rules)
-	    for (var i = 0; i < keys.length; i++) {
-	        if (!self.vm.$get(self.getVerifyModelPath(keys[i]) + ".$valid")) {
-	            valid = false
-	            break
-	        }
-	    }
-	    self.vm.$set(self.namespace + ".$valid", valid)
-	}
-
-	Verification.prototype.init = function () {
-	    var self = this
-	    self.vm.$set(self.namespace + ".$dirty", false)
-	    self.vm.$set(self.namespace + ".$valid", false)
-	    Object.keys(self.rules).forEach(function (modelPath) {
-	        self.vm.$set(self.getVerifyModelPath(modelPath) + ".$dirty", false)
-	        self.valid(modelPath, self.vm.$get(modelPath))
-	    })
-	    self.watch()
-	}
-
-	Verification.prototype.watch = function () {
-	    var self = this
-	    Object.keys(self.rules).forEach(function (modelPath) {
-	        self.vm.$watch(modelPath, function (newVal, oldVal) {
-	            self.vm.$set(self.getVerifyModelPath(modelPath) + ".$dirty", true)
-	            self.vm.$set(self.namespace + ".$dirty", true)
-	            self.valid(modelPath, newVal)
-	        })
-	    })
-
-	}
-
-	module.exports = Verification
-
-
-/***/ },
-/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, setImmediate, module) {(function () {
@@ -675,13 +716,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	})()
 
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(4).setImmediate, __webpack_require__(6)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(3).setImmediate, __webpack_require__(5)(module)))
 
 /***/ },
-/* 4 */
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(setImmediate, clearImmediate) {var nextTick = __webpack_require__(5).nextTick;
+	/* WEBPACK VAR INJECTION */(function(setImmediate, clearImmediate) {var nextTick = __webpack_require__(4).nextTick;
 	var apply = Function.prototype.apply;
 	var slice = Array.prototype.slice;
 	var immediateIds = {};
@@ -757,10 +798,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
 	  delete immediateIds[id];
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4).setImmediate, __webpack_require__(4).clearImmediate))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3).setImmediate, __webpack_require__(3).clearImmediate))
 
 /***/ },
-/* 5 */
+/* 4 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -857,7 +898,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 6 */
+/* 5 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
