@@ -1,6 +1,6 @@
 /*!
- * vue-verify 0.4.0
- * build in January 26th 2016, 15:26:21
+ * vue-verify 0.5.0
+ * build in February 17th 2016, 14:17:13
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -74,6 +74,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        vm.$set(namespace + ".$dirty", false)
 	        vm.$set(namespace + ".$valid", false)
+	        vm.$set(namespace + ".$rules", rules)
+
 	        Object.keys(rules).forEach(function (modelPath) {
 	            vm.$set(getVerifyModelPath(modelPath) + ".$dirty", false)
 	            verify(modelPath, vm.$get(modelPath))
@@ -229,6 +231,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        })
 	        return result
+	    }
+
+	    Vue.prototype.$verifyReset = function () {
+	        var vm = this
+	        console.log(vm)
+	        var verifier = vm.$options.verifier || {}
+	        var namespace = verifier.namespace || options.namespace || "verify"
+
+	        var rules = vm.$get(namespace + ".$rules")
+	        if (rules) {
+	            vm.$verify(rules)
+	        }
 	    }
 	}
 

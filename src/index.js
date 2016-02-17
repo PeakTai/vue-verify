@@ -14,6 +14,8 @@ exports.install = function (Vue, options) {
 
         vm.$set(namespace + ".$dirty", false)
         vm.$set(namespace + ".$valid", false)
+        vm.$set(namespace + ".$rules", rules)
+
         Object.keys(rules).forEach(function (modelPath) {
             vm.$set(getVerifyModelPath(modelPath) + ".$dirty", false)
             verify(modelPath, vm.$get(modelPath))
@@ -169,5 +171,17 @@ exports.install = function (Vue, options) {
             }
         })
         return result
+    }
+
+    Vue.prototype.$verifyReset = function () {
+        var vm = this
+        console.log(vm)
+        var verifier = vm.$options.verifier || {}
+        var namespace = verifier.namespace || options.namespace || "verify"
+
+        var rules = vm.$get(namespace + ".$rules")
+        if (rules) {
+            vm.$verify(rules)
+        }
     }
 }

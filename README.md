@@ -133,6 +133,10 @@ Specify custom verify methods.
 
 > You can specify options global via  `Vue.use(vueVerify,options)`,`Vue.mixin({verifier:options})` is deprecated.
 
+# Reset
+
+You can reset the verify results with method `$verifyReset()` of Vue instance.
+
 # Use in nodejs
 
 Install via github

@@ -42,11 +42,12 @@
         <input v-model="family.father">
         <template v-if="verify.family.father.$dirty">
             <span v-if="verify.family.father.required">father required</span>
-            <span v-if="verify.family.father.pattern">father name must be all the letters</span>
+            <span v-if="verify.family.father.pattern">father name must be 5-36 letters</span>
         </template>
     </p>
 
     <p>
+        <button type="button" @click="reset">reset</button>
         <button type="button" v-if="verify.$dirty&&verify.$valid">submit</button>
     </p>
     <hr>
@@ -67,6 +68,11 @@
             },
             confirm: {
                 name: null
+            }
+        },
+        methods: {
+            reset: function () {
+              this.$verifyReset()
             }
         },
         created: function () {
