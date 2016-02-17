@@ -1,6 +1,6 @@
 /*!
- * vue-verify 0.5.0
- * build in February 17th 2016, 14:17:13
+ * vue-verify 0.5.1
+ * build in February 17th 2016, 17:01:03
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -235,7 +235,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    Vue.prototype.$verifyReset = function () {
 	        var vm = this
-	        console.log(vm)
 	        var verifier = vm.$options.verifier || {}
 	        var namespace = verifier.namespace || options.namespace || "verify"
 

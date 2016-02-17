@@ -175,7 +175,6 @@ exports.install = function (Vue, options) {
 
     Vue.prototype.$verifyReset = function () {
         var vm = this
-        console.log(vm)
         var verifier = vm.$options.verifier || {}
         var namespace = verifier.namespace || options.namespace || "verify"
 
