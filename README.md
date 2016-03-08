@@ -139,7 +139,6 @@ You can reset the verify results with method `$verifyReset()` of Vue instance.
 
 # Use in nodejs
 
-Install via github
 ```
 npm install vue-verify --save-dev
 ```
