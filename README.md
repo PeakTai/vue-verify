@@ -70,12 +70,13 @@ new Vue({
         this.$verify({
             modelPath:{
                 //built-in verify methods as follows.
-                required:true,
-                pattern:"/^1[3578][0-9]{9}$/",
-                minLength:3,
-                maxLength:10,
-                min:1,
-                max:888
+                required:true,//priority:  1
+                minLength:3,// priority: 2
+                maxLength:10,// priority: 3
+                min:1,//priority: 4
+                max:888,//priority: 5
+                pattern:"/^1[3578][0-9]{9}$/",//priority: 6
+                equalTo:"ABC"//priority: 7
             }
         })
     }
@@ -87,6 +88,7 @@ new Vue({
 # Options
 
 You can specify verification options such as the following example.
+
 ```js
 new Vue({
     el: "#app",
@@ -98,9 +100,12 @@ new Vue({
     verifier: {
         namespace: "validator",
         methods: {
-            email: function (val) {
-                //return a boolean value
-                return /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(val)
+            email: {
+                priority:10,//default 100
+                fn:function (val) {
+                      //return a boolean value
+                      return /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(val)
+                }
             },
             exist: function (val) {
                 //return a promise function value for async verify

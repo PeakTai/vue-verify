@@ -1,6 +1,6 @@
 /*!
- * vue-verify 0.5.1
- * build in February 17th 2016, 17:01:03
+ * vue-verify 0.5.2
+ * build in March 24th 2016, 18:04:10
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -202,7 +202,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return {priority: 100, fn: method}
 	            }
 
-	            if (!Vue.util.isObject(value)) {
+	            if (!Vue.util.isObject(method)) {
 	                return null
 	            }
 	            if (typeof method.fn != "function") {

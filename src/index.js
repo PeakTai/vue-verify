@@ -142,7 +142,7 @@ exports.install = function (Vue, options) {
                 return {priority: 100, fn: method}
             }
 
-            if (!Vue.util.isObject(value)) {
+            if (!Vue.util.isObject(method)) {
                 return null
             }
             if (typeof method.fn != "function") {
