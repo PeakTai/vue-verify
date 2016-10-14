@@ -8,7 +8,7 @@ Import and install
  <script src="vue.min.js"></script>
  <script src="vue-verify.js"></script>
  <script>
-     Vue.use(vueVerify);
+     Vue.use(vueVerify,options);
  </script>
 ```
 
@@ -87,56 +87,61 @@ new Vue({
 
 # Options
 
-You can specify verification options such as the following example.
 
 ```js
-new Vue({
-    el: "#app",
-    data:{...}
-    created: function () {
-           this.$verify({...})
-    },
-    //specify verifier option
-    verifier: {
-        namespace: "validator",
-        methods: {
-            email: {
-                priority:10,//default 100
-                fn:function (val) {
-                      //return a boolean value
-                      return /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(val)
-                }
-            },
-            exist: function (val) {
-                //return a promise function value for async verify
-                return function (resolve, reject) {
-                    $.ajax({
-                        url: "server side verify url",
-                        data: {name: val},
-                        success: function (json) {
-                            json.valid ? resolve() : reject()
-                        },
-                        error: function (xhr) {
-                            reject()
-                        }
-                    })
-                }
+Vue.use(vueVerify, {
+    namespace: "validator",
+    methods: {
+        email: {
+            priority: 10,//default 100
+            fn: function (val) {
+                //return a boolean value
+                return /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(val)
+            }
+        },
+        exist: function (val) {
+            //return a promise function value for async verify
+            return function (resolve, reject) {
+                $.ajax({
+                    url: "server side verify url",
+                    data: {name: val},
+                    success: function (json) {
+                        json.valid ? resolve() : reject()
+                    },
+                    error: function (xhr) {
+                        reject()
+                    }
+                })
             }
         }
     }
+});
+```
+
+You can also specify verification options for instance.
+ 
+```
+new Vue({
+    el: "#app",
+    data: {...},
+    created: function () {
+        this.$verify({...})
+    },
+    //specify verifier option
+    verifier: options
 })
 ```
 
 
 ## Namespace
 
-Default is "verify".
+Default is "verify".Can not specify in instance options since v0.6.0.
 
 ## methods
 
 Specify custom verify methods.
 
-> You can specify options global via  `Vue.use(vueVerify,options)`,`Vue.mixin({verifier:options})` is deprecated.
+> You can specify options global via  `Vue.use(vueVerify,options)`.
 
 # Reset
 
