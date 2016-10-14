@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>vue-verify demo</title>
-    <script src="vue.min.js"></script>
+    <script src="//cdn.bootcss.com/vue/2.0.2/vue.js"></script>
     <script src="../dist/vue-verify.js"></script>
 </head>
 <body>
@@ -52,7 +52,7 @@
     </p>
     <hr>
     <p>vm.verify</p>
-    <pre>{{verify|json}}</pre>
+    <pre>{{verify}}</pre>
 </div>
 <script>
     Vue.config.debug = true
@@ -72,7 +72,7 @@
         },
         methods: {
             reset: function () {
-              this.$verifyReset()
+                this.$verifyReset()
             }
         },
         created: function () {

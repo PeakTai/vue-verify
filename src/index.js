@@ -5,33 +5,62 @@ exports.install = function (Vue, options) {
 
     options = options || {}
     var buildInMethods = Vue.util.extend(require("./methods.js"), processMethod(options.methods))
+    var namespace = options.namespace || "verify"
+    var util = require("./util.js")
+
+    Vue.mixin({
+        data: function () {
+            var obj = {}
+            obj[namespace] = {}
+            return obj
+        }
+    })
+
 
     Vue.prototype.$verify = function (rules) {
         var vm = this
         var verifier = vm.$options.verifier || {}
         var methods = Vue.util.extend(processMethod(verifier.methods), buildInMethods)
-        var namespace = verifier.namespace || options.namespace || "verify"
+        var verifyObj = vm[namespace]
 
-        vm.$set(namespace + ".$dirty", false)
-        vm.$set(namespace + ".$valid", false)
-        vm.$set(namespace + ".$rules", rules)
+        Vue.set(verifyObj, "$dirty", false)
+        Vue.set(verifyObj, "$valid", false)
+        Vue.set(verifyObj, "$rules", rules)
 
         Object.keys(rules).forEach(function (modelPath) {
-            vm.$set(getVerifyModelPath(modelPath) + ".$dirty", false)
-            verify(modelPath, vm.$get(modelPath))
+            var model = getVerifyModel(modelPath)
+            Vue.set(model, "$dirty", false)
+            verify(modelPath, util.getModel(vm, modelPath))
         })
 
         Object.keys(rules).forEach(function (modelPath) {
             vm.$watch(modelPath, function (val) {
-                vm.$set(getVerifyModelPath(modelPath) + ".$dirty", true)
-                vm.$set(namespace + ".$dirty", true)
+                var model = getVerifyModel(modelPath)
+                Vue.set(model, "$dirty", true)
+                Vue.set(verifyObj, "$dirty", true)
                 verify(modelPath, val)
             })
         })
 
-
-        function getVerifyModelPath(modelPath) {
-            return namespace + "." + modelPath
+        function getVerifyModel(modelPath) {
+            var arr = modelPath.split(".")
+            var model = verifyObj[arr[0]]
+            if (!model) {
+                model = {}
+                Vue.set(verifyObj, arr[0], {})
+            }
+            for (var i = 1; i < arr.length; i++) {
+                if (!arr[i]) {
+                    continue
+                }
+                var m = model[arr[i]]
+                if (!m) {
+                    m = {}
+                    Vue.set(model, arr[i], m)
+                }
+                model = m
+            }
+            return model
         }
 
         function verify(modelPath, val) {
@@ -47,8 +76,7 @@ exports.install = function (Vue, options) {
                 return
             }
 
-            var ruleMapClone = Vue.util.extend({}, ruleMap)
-            var keys = Object.keys(ruleMapClone).sort(function (a, b) {
+            var keys = Object.keys(ruleMap).sort(function (a, b) {
                 var m1 = methods[a]
                 var m2 = methods[b]
                 var p1 = m1 ? m1.priority : 100
@@ -56,7 +84,7 @@ exports.install = function (Vue, options) {
                 return p1 - p2
             })
 
-            stepVerify(modelPath, ruleMapClone, keys, 0, val)
+            stepVerify(modelPath, ruleMap, keys, 0, val)
         }
 
         function stepVerify(modelPath, ruleMap, keys, index, val) {
@@ -98,10 +126,10 @@ exports.install = function (Vue, options) {
         }
 
         function update(modelPath, rule, inValid) {
-            var verifyModelPath = getVerifyModelPath(modelPath)
-            vm.$set(verifyModelPath + "." + rule, inValid)
+            var verifyModel = getVerifyModel(modelPath)
+            Vue.set(verifyModel, rule, inValid)
 
-            var verifyModel = vm.$get(verifyModelPath), modelValid = true
+            var modelValid = true
             Object.keys(verifyModel).forEach(function (prop) {
                 //ignore $dirty and $valid
                 if ("$dirty" === prop || "$valid" === prop) {
@@ -109,26 +137,37 @@ exports.install = function (Vue, options) {
                 }
                 //keep only one rule has invalid flag
                 if (!modelValid) {
-                    vm.$set(verifyModelPath + "." + prop, false)
+                    Vue.set(verifyModel, prop, false)
                 } else if (verifyModel[prop]) {
                     modelValid = false
                 }
             })
 
-            vm.$set(verifyModelPath + ".$valid", modelValid)
+            Vue.set(verifyModel, "$valid", modelValid)
 
             //verify.$valid
             var valid = true
             var keys = Object.keys(rules)
             for (var i = 0; i < keys.length; i++) {
-                if (!vm.$get(getVerifyModelPath(keys[i]) + ".$valid")) {
+                var model = getVerifyModel(keys[i])
+                if (!model.$valid) {
                     valid = false
                     break
                 }
             }
-            vm.$set(namespace + ".$valid", valid)
+            Vue.set(verifyObj, "$valid", valid)
         }
     }
+
+    Vue.prototype.$verifyReset = function () {
+        var verify = this[namespace]
+
+        var rules = verify.$rules
+        if (rules) {
+            vm.$verify(rules)
+        }
+    }
+
     function processMethod(methods) {
         if (!methods) {
             return {}
@@ -173,14 +212,4 @@ exports.install = function (Vue, options) {
         return result
     }
 
-    Vue.prototype.$verifyReset = function () {
-        var vm = this
-        var verifier = vm.$options.verifier || {}
-        var namespace = verifier.namespace || options.namespace || "verify"
-
-        var rules = vm.$get(namespace + ".$rules")
-        if (rules) {
-            vm.$verify(rules)
-        }
-    }
 }

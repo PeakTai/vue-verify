@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>vue-verify demo</title>
-    <script src="vue.min.js"></script>
+    <script src="//cdn.bootcss.com/vue/2.0.2/vue.js"></script>
     <script src="../dist/vue-verify.js"></script>
 </head>
 <body>
 <div id="app">
     <p>
+        <label>name:</label>
         <input v-model="name">
         <template v-if="validator.name.$dirty">
             <span v-if="validator.name.required">name reqiured</span>
@@ -18,6 +19,7 @@
     </p>
 
     <p>
+        <label>age:</label>
         <input v-model="age">
         <template v-if="validator.age.$dirty">
             <span v-if="validator.age.required">age reqiured</span>
@@ -32,11 +34,13 @@
     </p>
     <hr>
     <p>vm.validator</p>
-    <pre>{{validator|json}}</pre>
+    <pre>{{validator}}</pre>
 </div>
 <script>
     Vue.config.debug = true
-    Vue.use(vueVerify)
+    Vue.use(vueVerify, {
+        namespace: "validator"//default verify
+    })
     window.vm = new Vue({
         el: "#app",
         data: {
@@ -56,9 +60,6 @@
                     max: 50
                 }
             })
-        },
-        verifier: {
-            namespace: "validator"//default verify
         }
     })
 </script>

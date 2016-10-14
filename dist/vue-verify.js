@@ -1,6 +1,7 @@
 /*!
- * vue-verify 0.5.2
- * build in March 24th 2016, 18:04:10
+ * vue-verify 0.6.0
+ * build in October 14th 2016, 15:15:05
+ * https://github.com/PeakTai/vue-verify
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -65,33 +66,62 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    options = options || {}
 	    var buildInMethods = Vue.util.extend(__webpack_require__(1), processMethod(options.methods))
+	    var namespace = options.namespace || "verify"
+	    var util = __webpack_require__(2)
+
+	    Vue.mixin({
+	        data: function () {
+	            var obj = {}
+	            obj[namespace] = {}
+	            return obj
+	        }
+	    })
+
 
 	    Vue.prototype.$verify = function (rules) {
 	        var vm = this
 	        var verifier = vm.$options.verifier || {}
 	        var methods = Vue.util.extend(processMethod(verifier.methods), buildInMethods)
-	        var namespace = verifier.namespace || options.namespace || "verify"
+	        var verifyObj = vm[namespace]
 
-	        vm.$set(namespace + ".$dirty", false)
-	        vm.$set(namespace + ".$valid", false)
-	        vm.$set(namespace + ".$rules", rules)
+	        Vue.set(verifyObj, "$dirty", false)
+	        Vue.set(verifyObj, "$valid", false)
+	        Vue.set(verifyObj, "$rules", rules)
 
 	        Object.keys(rules).forEach(function (modelPath) {
-	            vm.$set(getVerifyModelPath(modelPath) + ".$dirty", false)
-	            verify(modelPath, vm.$get(modelPath))
+	            var model = getVerifyModel(modelPath)
+	            Vue.set(model, "$dirty", false)
+	            verify(modelPath, util.getModel(vm, modelPath))
 	        })
 
 	        Object.keys(rules).forEach(function (modelPath) {
 	            vm.$watch(modelPath, function (val) {
-	                vm.$set(getVerifyModelPath(modelPath) + ".$dirty", true)
-	                vm.$set(namespace + ".$dirty", true)
+	                var model = getVerifyModel(modelPath)
+	                Vue.set(model, "$dirty", true)
+	                Vue.set(verifyObj, "$dirty", true)
 	                verify(modelPath, val)
 	            })
 	        })
 
-
-	        function getVerifyModelPath(modelPath) {
-	            return namespace + "." + modelPath
+	        function getVerifyModel(modelPath) {
+	            var arr = modelPath.split(".")
+	            var model = verifyObj[arr[0]]
+	            if (!model) {
+	                model = {}
+	                Vue.set(verifyObj, arr[0], {})
+	            }
+	            for (var i = 1; i < arr.length; i++) {
+	                if (!arr[i]) {
+	                    continue
+	                }
+	                var m = model[arr[i]]
+	                if (!m) {
+	                    m = {}
+	                    Vue.set(model, arr[i], m)
+	                }
+	                model = m
+	            }
+	            return model
 	        }
 
 	        function verify(modelPath, val) {
@@ -107,8 +137,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return
 	            }
 
-	            var ruleMapClone = Vue.util.extend({}, ruleMap)
-	            var keys = Object.keys(ruleMapClone).sort(function (a, b) {
+	            var keys = Object.keys(ruleMap).sort(function (a, b) {
 	                var m1 = methods[a]
 	                var m2 = methods[b]
 	                var p1 = m1 ? m1.priority : 100
@@ -116,7 +145,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return p1 - p2
 	            })
 
-	            stepVerify(modelPath, ruleMapClone, keys, 0, val)
+	            stepVerify(modelPath, ruleMap, keys, 0, val)
 	        }
 
 	        function stepVerify(modelPath, ruleMap, keys, index, val) {
@@ -144,7 +173,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            //promise
 	            else if (result instanceof Function) {
-	                var Promise = __webpack_require__(2)
+	                var Promise = __webpack_require__(3)
 	                new Promise(result).then(function () {
 	                    update(modelPath, rule, false)
 	                    stepVerify(modelPath, ruleMap, keys, index + 1, val)
@@ -158,10 +187,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        function update(modelPath, rule, inValid) {
-	            var verifyModelPath = getVerifyModelPath(modelPath)
-	            vm.$set(verifyModelPath + "." + rule, inValid)
+	            var verifyModel = getVerifyModel(modelPath)
+	            Vue.set(verifyModel, rule, inValid)
 
-	            var verifyModel = vm.$get(verifyModelPath), modelValid = true
+	            var modelValid = true
 	            Object.keys(verifyModel).forEach(function (prop) {
 	                //ignore $dirty and $valid
 	                if ("$dirty" === prop || "$valid" === prop) {
@@ -169,26 +198,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	                //keep only one rule has invalid flag
 	                if (!modelValid) {
-	                    vm.$set(verifyModelPath + "." + prop, false)
+	                    Vue.set(verifyModel, prop, false)
 	                } else if (verifyModel[prop]) {
 	                    modelValid = false
 	                }
 	            })
 
-	            vm.$set(verifyModelPath + ".$valid", modelValid)
+	            Vue.set(verifyModel, "$valid", modelValid)
 
 	            //verify.$valid
 	            var valid = true
 	            var keys = Object.keys(rules)
 	            for (var i = 0; i < keys.length; i++) {
-	                if (!vm.$get(getVerifyModelPath(keys[i]) + ".$valid")) {
+	                var model = getVerifyModel(keys[i])
+	                if (!model.$valid) {
 	                    valid = false
 	                    break
 	                }
 	            }
-	            vm.$set(namespace + ".$valid", valid)
+	            Vue.set(verifyObj, "$valid", valid)
 	        }
 	    }
+
+	    Vue.prototype.$verifyReset = function () {
+	        var verify = this[namespace]
+
+	        var rules = verify.$rules
+	        if (rules) {
+	            vm.$verify(rules)
+	        }
+	    }
+
 	    function processMethod(methods) {
 	        if (!methods) {
 	            return {}
@@ -233,21 +273,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return result
 	    }
 
-	    Vue.prototype.$verifyReset = function () {
-	        var vm = this
-	        var verifier = vm.$options.verifier || {}
-	        var namespace = verifier.namespace || options.namespace || "verify"
-
-	        var rules = vm.$get(namespace + ".$rules")
-	        if (rules) {
-	            vm.$verify(rules)
-	        }
-	    }
 	}
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * required
@@ -371,7 +401,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function equalTo(val, modelPath) {
-	    return val === this.$get(modelPath)
+	    var util = __webpack_require__(2)
+	    var model = util.getModel(this, modelPath)
+	    return val === model
 	}
 
 
@@ -412,6 +444,32 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 2 */
+/***/ function(module, exports) {
+
+	/**
+	 * Created by peak on 2016/10/14.
+	 */
+	exports.getModel = function (vm, path) {
+	    var arr = path.split(".")
+	    var model = vm[arr[0]]
+	    if (!model) {
+	        return null
+	    }
+	    for (var i = 1; i < arr.length; i++) {
+	        if (!arr[i]) {
+	            continue
+	        }
+	        var m = model[arr[i]]
+	        if (!m) {
+	            return null
+	        }
+	        model = m
+	    }
+	    return model
+	}
+
+/***/ },
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, setImmediate, module) {(function () {
@@ -729,13 +787,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	})()
 
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(3).setImmediate, __webpack_require__(5)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(4).setImmediate, __webpack_require__(6)(module)))
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(setImmediate, clearImmediate) {var nextTick = __webpack_require__(4).nextTick;
+	/* WEBPACK VAR INJECTION */(function(setImmediate, clearImmediate) {var nextTick = __webpack_require__(5).nextTick;
 	var apply = Function.prototype.apply;
 	var slice = Array.prototype.slice;
 	var immediateIds = {};
@@ -811,10 +869,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
 	  delete immediateIds[id];
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3).setImmediate, __webpack_require__(3).clearImmediate))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4).setImmediate, __webpack_require__(4).clearImmediate))
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -911,7 +969,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {

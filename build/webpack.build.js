@@ -14,6 +14,8 @@ module.exports = {
         libraryTarget: "umd"
     },
     plugins: [
-        new webpack.BannerPlugin("vue-verify " + package.version + "\nbuild in " + moment().format("MMMM Do YYYY, HH:mm:ss"))
+        new webpack.BannerPlugin("vue-verify " + package.version +
+            "\nbuild in " + moment().format("MMMM Do YYYY, HH:mm:ss")
+            + "\nhttps://github.com/PeakTai/vue-verify")
     ],
 }

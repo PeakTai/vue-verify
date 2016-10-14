@@ -120,7 +120,9 @@ function isInteger(val) {
 }
 
 function equalTo(val, modelPath) {
-    return val === this.$get(modelPath)
+    var util = require("./util.js")
+    var model = util.getModel(this, modelPath)
+    return val === model
 }
 
 
