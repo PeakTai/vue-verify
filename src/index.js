@@ -2,7 +2,8 @@
  * Created by peak on 15/11/14.
  */
 exports.install = function (Vue, options) {
-
+    //promose polyfill
+    require('es6-promise').polyfill();
     options = options || {}
     var buildInMethods = Vue.util.extend(require("./methods.js"), processMethod(options.methods))
     var namespace = options.namespace || "verify"
@@ -112,7 +113,6 @@ exports.install = function (Vue, options) {
             }
             //promise
             else if (result instanceof Function) {
-                var Promise = require("promiz")
                 new Promise(result).then(function () {
                     update(modelPath, rule, false)
                     stepVerify(modelPath, ruleMap, keys, index + 1, val)
