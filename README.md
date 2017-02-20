@@ -75,7 +75,7 @@ new Vue({
                 maxLength:10,// priority: 3
                 min:1,//priority: 4
                 max:888,//priority: 5
-                pattern:"/^1[3578][0-9]{9}$/",//priority: 6
+                pattern:/^1[3578][0-9]{9}$/,//priority: 6
                 equalTo:"ABC"//priority: 7
             }
         })
