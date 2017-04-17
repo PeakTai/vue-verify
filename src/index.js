@@ -16,9 +16,9 @@ exports.install = function (Vue, options) {
         }
     })
 
-
+    var vm = null
     Vue.prototype.$verify = function (rules) {
-        var vm = this
+        vm = this
         var verifier = vm.$options.verifier || {}
         var methods = Vue.util.extend(processMethod(verifier.methods), buildInMethods)
         var verifyObj = vm[namespace]
@@ -181,7 +181,8 @@ exports.install = function (Vue, options) {
                 return {priority: 100, fn: method}
             }
 
-            if (!Vue.util.isObject(method)) {
+            // Vue.util.isObject is vue internal medthod, you should't use
+            if (typeof method !== 'object') {
                 return null
             }
             if (typeof method.fn != "function") {
