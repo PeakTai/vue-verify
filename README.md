@@ -1,5 +1,5 @@
 # Intro
-vue-verify is a simple veriication plugin for vue,compatible with  Vuejs 1.x and 2.x.
+vue-verify is a simple verification plugin for vue,compatible with  Vuejs 1.x and 2.x.
 
 # Usage
 Import and install
